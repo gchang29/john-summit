@@ -9,8 +9,8 @@
     "gametime": {
       "consecutive_failures": 0,
       "failure_alerted": false,
-      "last_checked": "2026-10-01T20:05:37+00:00",
-      "last_ok": "2026-10-01T20:05:37+00:00",
+      "last_checked": "2026-10-01T20:40:44+00:00",
+      "last_ok": "2026-10-01T20:40:44+00:00",
       "last_price": 536.0,
       "last_status": "ok",
       "lowest_price": 533.0,
@@ -18,40 +18,40 @@
       "url": "https://gametime.co/concert/john-summit-tickets/10-29-2026-boston-ma-td-garden/events/6a0e00dc90889bde35083dd4"
     },
     "seatgeek": {
-      "consecutive_failures": 39,
+      "consecutive_failures": 40,
       "failure_alerted": true,
-      "last_checked": "2026-10-01T20:05:37+00:00",
+      "last_checked": "2026-10-01T20:40:44+00:00",
       "last_status": "blocked",
       "name": "SeatGeek",
       "url": "https://seatgeek.com/john-summit-tickets/boston-massachusetts-td-garden-2026-10-29-7-pm/concert/18257236"
     },
     "stubhub": {
-      "consecutive_failures": 15,
+      "consecutive_failures": 16,
       "failure_alerted": true,
-      "last_checked": "2026-10-01T20:05:37+00:00",
+      "last_checked": "2026-10-01T20:40:44+00:00",
       "last_price": null,
       "last_status": "blocked",
       "name": "StubHub",
       "url": "https://www.stubhub.com/john-summit-boston-tickets-10-29-2026/event/161191071/"
     },
     "ticketmaster": {
-      "consecutive_failures": 39,
+      "consecutive_failures": 40,
       "failure_alerted": true,
-      "last_checked": "2026-10-01T20:05:37+00:00",
+      "last_checked": "2026-10-01T20:40:44+00:00",
       "last_status": "blocked",
       "name": "Ticketmaster"
     },
     "tickpick": {
-      "consecutive_failures": 39,
+      "consecutive_failures": 40,
       "failure_alerted": true,
-      "last_checked": "2026-10-01T20:05:37+00:00",
+      "last_checked": "2026-10-01T20:40:44+00:00",
       "last_status": "error",
       "name": "TickPick"
     },
     "vividseats": {
       "consecutive_failures": 0,
       "failure_alerted": false,
-      "last_checked": "2026-10-01T20:05:37+00:00",
+      "last_checked": "2026-10-01T20:40:44+00:00",
       "last_price": null,
       "last_status": "no_ga_listings",
       "name": "Vivid Seats",
