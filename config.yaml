@@ -1,0 +1,55 @@
+# ---------------------------------------------------------------------------
+# John Summit @ TD Garden (Boston) - GA ticket price tracker settings
+# ---------------------------------------------------------------------------
+
+event:
+  name: "John Summit - CTRL ESCAPE Arena Tour"
+  venue: "TD Garden, Boston"
+  date: "2026-10-29"          # tracker stops itself the day after this
+
+# How many tickets you want. Prices are compared per ticket.
+quantity: 1
+
+# Send an alert whenever the cheapest GA price on a site drops by at least this
+# many dollars since the last check.
+min_drop_dollars: 1
+
+# Optional: also send a loud "BUY NOW" alert when any GA ticket is at or below
+# this price (per ticket, in dollars). Set to null to disable.
+target_price: null
+
+# What counts as a GA ticket. Listings whose section text matches `ga_pattern`
+# and does NOT match `exclude_pattern` are tracked. (Regex, case-insensitive.)
+ga_pattern: '(?:general\s+admission|\bGA\b|\bG\.A\.)'
+exclude_pattern: '(?:\bVIP\b|parking|hotel|package|suite)'
+
+# Ignore "prices" outside this range (filters out junk like "$5 off").
+min_plausible_price: 20
+max_plausible_price: 3000
+
+# Ticket sites. `url` = the event page. If a site has no `url`, the tracker
+# opens `discover_from` and uses the first link whose address matches
+# `discover_match` (a regex). Set `enabled: false` to skip a site.
+sites:
+  stubhub:
+    name: StubHub
+    url: "https://www.stubhub.com/john-summit-boston-tickets-10-29-2026/event/161191071/"
+  vividseats:
+    name: Vivid Seats
+    url: "https://www.vividseats.com/john-summit-tickets-boston-td-garden-10-29-2026--concerts-dance-electronica/production/7058770"
+  seatgeek:
+    name: SeatGeek
+    url: "https://seatgeek.com/john-summit-tickets/boston-massachusetts-td-garden-2026-10-29-7-pm/concert/18257236"
+  ticketmaster:
+    name: Ticketmaster
+    discover_from: "https://www.ticketmaster.com/john-summit-tickets/artist/2730221"
+    discover_match: '(?i)^(?=.*/event/)(?=.*(boston|10-29-2026))'
+  gametime:
+    name: Gametime
+    discover_from: "https://gametime.co/john-summit-tickets/performers/musicjohnsummit"
+    discover_match: '(?i)^(?=.*/events/)(?=.*(boston|10-29-2026))'
+    json_price_in_cents: true   # Gametime's internal data stores prices in cents
+  tickpick:
+    name: TickPick
+    discover_from: "https://www.tickpick.com/search?q=john%20summit"
+    discover_match: '(?i)^(?=.*john-summit)(?=.*boston)'
