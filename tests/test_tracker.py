@@ -74,33 +74,38 @@ def test_failure_heads_up_once():
     assert len(alerts) == 1 and "can't read" in alerts[0].title
 
 
-def test_target_price_alert():
-    state = {}
+def _target_run(state):
     cfg = {"min_drop_dollars": 1, "target_price": 500, "alert_on_every_drop": False}
-    run = lambda p: evaluate(state, [SiteResult("a", "Gametime", OK, "https://g", p)], cfg, "t")
-    assert "running" in run(538)[0].title       # first check: status message
-    assert run(520) == []                        # drop above target: silent in target-only mode
+    return lambda p, status=OK: evaluate(
+        state, [SiteResult("a", "Gametime", status, "https://g", p if status == OK else None)], cfg, "t")
+
+
+def test_quiet_until_target_then_every_change():
+    run = _target_run({})
+    assert "running" in run(538)[0].title          # first check: one status email
+    assert run(520) == [] and run(530) == []         # above $500 before hitting it: silent
     hit = run(499)
-    assert len(hit) == 1 and hit[0].urgent and "$499" in hit[0].title and "https://g" in hit[0].body
-    assert run(499) == [] and run(499.5) == []   # no repeats at the same price
-    assert "$480" in run(480)[0].title           # even lower -> alert again
-    assert run(560) == []                        # back above target -> re-armed, silent
-    assert "$495" in run(495)[0].title           # under again -> alert
+    assert len(hit) == 1 and hit[0].urgent and "hit $499" in hit[0].title and "https://g" in hit[0].body
+    assert run(499) == [] and run(499.5) == []       # same price (< $1 change): silent
+    down = run(480)
+    assert "dropped to $480" in down[0].title and "was $499" in down[0].body
+    up = run(510)
+    assert "went up to $510" in up[0].title and not up[0].urgent   # back above $500 still emails
+    assert "dropped to $505" in run(505)[0].title
 
 
 def test_target_already_met_on_first_check():
-    state = {}
-    cfg = {"min_drop_dollars": 1, "target_price": 500, "alert_on_every_drop": False}
-    alerts = evaluate(state, [SiteResult("a", "A", OK, "u", 450)], cfg, "t")
-    assert len(alerts) == 1 and alerts[0].urgent and "$450" in alerts[0].title
+    run = _target_run({})
+    alerts = run(450)
+    assert len(alerts) == 1 and alerts[0].urgent and "hit $450" in alerts[0].title
 
 
-def test_no_ga_check_does_not_trigger_target_again():
-    state = {}
-    cfg = {"min_drop_dollars": 1, "target_price": 500, "alert_on_every_drop": False}
-    evaluate(state, [SiteResult("a", "A", OK, "u", 450)], cfg, "t")
-    evaluate(state, [SiteResult("a", "A", NO_GA, "u", None)], cfg, "t")
-    assert evaluate(state, [SiteResult("a", "A", OK, "u", 450)], cfg, "t") == []
+def test_flaky_empty_page_does_not_cause_emails():
+    run = _target_run({})
+    run(450)
+    assert run(None, status=NO_GA) == []
+    assert run(None, status=BLOCKED) == []
+    assert run(450) == []                             # same price as last email: silent
 
 
 def test_browser_finds_ga_cards():

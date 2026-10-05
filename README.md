@@ -9,10 +9,15 @@ Gametime, TickPick**. You can add more in `config.yaml`.
 
 ## What you'll get
 
-An **email the moment the cheapest GA ticket is $500 or less** (per ticket,
-fees included), with a link straight to the listing. If it drops even lower
-you get another email. If it goes back above $500 and later comes back down,
-you get emailed again. Change the price with `target_price` in `config.yaml`.
+- **An email the moment the cheapest GA ticket hits $500 or less** (per
+  ticket, fees included), with a link straight to the listing.
+- **After that, an email every time the price changes:** "dropped to $480 (was
+  $499)", "went up to $510 (was $480)", and so on, even if it goes back above
+  $500.
+
+Nothing is sent before it first reaches $500. Change the price with
+`target_price` in `config.yaml`. If the emails get too frequent, raise
+`min_drop_dollars` (e.g. to 5) so tiny $1–2 wiggles are ignored.
 
 It checks every ~30 minutes and stops by itself after the concert. Every check
 is saved in `data/history.csv`, which you can open in Google Sheets to see how

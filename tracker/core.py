@@ -106,25 +106,42 @@ def evaluate(state: dict, results: list[SiteResult], cfg: dict, now_iso: str) ->
         reasons.append(f"Cheapest GA overall dropped to {_money(price)} on {sites_state[key]['name']} "
                        f"(was {_money(prev_cheapest[0])})")
 
-    target_news = False
-    if target is not None:
-        last_target_alert = state.get("target_alerted_price")
-        if price <= float(target):
-            target_news = last_target_alert is None or price <= last_target_alert - min_drop
-            if target_news:
-                state["target_alerted_price"] = price
-        else:
-            state["target_alerted_price"] = None  # back above target: re-arm the alert
-
+    # Target mode: stay quiet until the cheapest GA first reaches the target,
+    # then email on every change after that (down or up, even back above it).
     name = sites_state[key].get("name", key)
+    target_news = False
+    target_title = lead = ""
+    if target is not None:
+        target = float(target)
+        last_sent = state.get("last_emailed_price")
+        if not state.get("target_reached"):
+            if price <= target:
+                state["target_reached"] = True
+                target_news = True
+                target_title = f"John Summit GA tickets hit {_money(price)} on {name}"
+                lead = f"The cheapest GA ticket is now {_money(price)} per ticket on {name} (your target: {_money(target)})."
+        elif last_sent is None or abs(price - last_sent) >= min_drop:
+            target_news = True
+            if last_sent is None:
+                target_title = f"John Summit GA tickets: {_money(price)} on {name}"
+                lead = f"The cheapest GA ticket is {_money(price)} per ticket on {name}."
+            else:
+                went = "dropped" if price < last_sent else "went up"
+                target_title = f"John Summit GA {went} to {_money(price)} on {name}"
+                lead = (f"The cheapest GA ticket {went} to {_money(price)} per ticket on {name} "
+                        f"(was {_money(last_sent)}, {'down' if price < last_sent else 'up'} "
+                        f"{_money(abs(price - last_sent))}).")
+        if target_news:
+            state["last_emailed_price"] = price
+
     if target_news:
-        body = f"Cheapest GA ticket is {_money(price)} per ticket on {name} (your target: {_money(float(target))})."
-        if reasons:
-            body += "\n\n" + "\n".join(reasons)
+        body = lead
+        if new_low:
+            body += "\nThat's the lowest price seen so far."
         body += f"\n\n{summary}\n\nBuy here: {click}"
         state["initialized"] = True
-        alerts.append(Alert(f"John Summit GA tickets are {_money(price)} on {name}", body,
-                            click_url=click, urgent=True))
+        alerts.append(Alert(target_title, body, click_url=click,
+                            urgent=price <= float(target)))
     elif first_run:
         state["initialized"] = True
         alerts.append(Alert("John Summit GA tracker is running",

@@ -10,15 +10,16 @@ event:
 # How many tickets you want. Prices are compared per ticket.
 quantity: 1
 
-# THE MAIN ALERT: email/notify when the cheapest GA ticket (per ticket, fees
-# included) is at or below this price. You get another alert if it drops even
-# lower, and again if it goes back above this price and later comes back down.
+# THE MAIN ALERT: nothing is emailed until the cheapest GA ticket (per ticket,
+# fees included) first reaches this price. From then on you get an email every
+# time the cheapest GA price changes, whether it drops or goes back up.
 target_price: 500
 
 # Also alert on every price drop, even above target_price? (true/false)
 alert_on_every_drop: false
 
-# A "drop" must be at least this many dollars to count.
+# A price change must be at least this many dollars to count. Raise it
+# (e.g. 5) if you get too many emails.
 min_drop_dollars: 1
 
 # What counts as a GA ticket. Listings whose section text matches `ga_pattern`
