@@ -9,75 +9,74 @@ Gametime, TickPick**. You can add more in `config.yaml`.
 
 ## What you'll get
 
-- When it starts: one message listing the cheapest GA price on every site.
-- After that, only when something gets cheaper, e.g.
+An **email the moment the cheapest GA ticket is $500 or less** (per ticket,
+fees included), with a link straight to the listing. If it drops even lower
+you get another email. If it goes back above $500 and later comes back down,
+you get emailed again. Change the price with `target_price` in `config.yaml`.
 
-  > **John Summit GA price drop: $142**
-  > StubHub: $142 (was $158, down $16)
-  > New all-time low: $142 on StubHub
-  > Current cheapest GA per ticket: StubHub $142 · Gametime $149 · Vivid Seats $155 …
-
-  Tapping the notification opens the cheapest site.
-- Optional **"BUY NOW?"** alert when GA reaches a price you set (`target_price`
-  in `config.yaml`).
-- A one-time heads-up if a site keeps blocking the tracker.
-- It stops by itself after the concert.
-
-A record of every check is saved in `data/history.csv`. You can open it in
-Excel or Google Sheets to see how prices changed.
+It checks every ~30 minutes and stops by itself after the concert. Every check
+is saved in `data/history.csv`, which you can open in Google Sheets to see how
+prices moved.
 
 ---
 
-## Setup (about 10 minutes, no coding)
+## Setup: email alerts (about 5 minutes)
 
-### 1. Get phone notifications (ntfy, free, no account)
+The tracker sends the email **from a Gmail account using an "app password"**.
+This is a special password Google gives you just for this. It is not your
+normal password. The best setup is to send from the same Gmail account that
+receives the alerts, because Gmail never puts mail you sent to yourself in spam.
 
-1. Install the **ntfy** app ([iPhone](https://apps.apple.com/app/ntfy/id1625396347) /
-   [Android](https://play.google.com/store/apps/details?id=io.heckel.ntfy)).
-2. Tap **+** and subscribe to a topic with a long random name nobody would guess,
-   e.g. `john-summit-ga-7f3k29xq`. (Anyone who knows the name can read it.)
+### 1. Make a Gmail app password
 
-### 2. Give the tracker your topic name
+1. Sign in to the Gmail account that should **send** the alerts (ideally the
+   same one that receives them).
+2. Go to <https://myaccount.google.com/apppasswords>. If Google says app
+   passwords aren't available, first turn on **2-Step Verification** at
+   <https://myaccount.google.com/signinoptions/twosv>, then try again.
+3. Type a name like `ticket tracker` and click **Create**.
+4. Copy the 16-letter password it shows (e.g. `abcd efgh ijkl mnop`).
 
-In this GitHub repo: **Settings → Secrets and variables → Actions → New
-repository secret**
+### 2. Add three secrets to GitHub
 
-- Name: `NTFY_TOPIC`
-- Secret: your topic name, e.g. `john-summit-ga-7f3k29xq`
+In this repo go to **Settings → Secrets and variables → Actions → New
+repository secret** and add these three:
 
-(Optional extras: `DISCORD_WEBHOOK_URL` for Discord, or `SMTP_HOST`,
-`SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EMAIL_TO` for email.)
+| Name            | Secret (value)                                |
+|-----------------|-----------------------------------------------|
+| `SMTP_USER`     | the Gmail address that sends (from step 1)    |
+| `SMTP_PASSWORD` | the 16-letter app password                    |
+| `EMAIL_TO`      | the address that should get the alerts        |
 
-### 3. Turn it on
+These are stored privately. Even though the repo is public, nobody can see
+them, and they never show up in the code or the logs.
 
-The schedule lives in `.github/workflows/track-prices.yml`. GitHub only runs
-scheduled jobs from the repo's **default branch** (`main`), so this code needs
-to be on `main`.
+### 3. Send yourself a test email
 
-Then go to the **Actions** tab → **Track John Summit GA prices** → **Run
-workflow** to do the first check right away. You should get the "tracker is
-running" notification within a few minutes. After that it runs by itself
-every 30 minutes.
+**Actions** tab → **Track John Summit GA prices** (left side) → **Run
+workflow** → tick **"Just send a test email"** → **Run workflow**.
 
-### ⚠️ Private repo? Watch your free minutes
+Within ~1 minute you should get an email titled *"John Summit ticket tracker:
+test email"*. **If it's in spam, open it and click "Report not spam".**
+Gmail then remembers that this sender is OK. To be extra safe, open the email,
+click the ⋮ menu → **Filter messages like this** → **Create filter** →
+tick **Never send it to Spam**.
 
-This repo is private. GitHub gives free accounts **2,000 Actions minutes per
-month** for private repos, and one check takes ~3–4 minutes. Every 30 minutes
-would use them up in about 10 days, and then checks just stop (you won't be
-charged unless you added a payment method with a spending limit). Either:
+That's it. The tracker is already running every 30 minutes.
 
-- **Make the repo public** (Settings → General → Danger Zone). Public repos get
-  unlimited free minutes. Your notification topic stays secret because it's
-  stored as a secret, not in the code. **Or**
-- In `track-prices.yml`, change `"*/30 * * * *"` to `"0 */2 * * *"` (every 2 hours).
+### Optional: phone push notifications
+
+Install the free **ntfy** app, subscribe to a long random topic name, and add
+it as a secret named `NTFY_TOPIC`. Alerts then also pop up on your phone.
 
 ---
 
 ## Running it on your own computer instead (often works better)
 
-Some ticket sites block traffic from cloud servers like GitHub's. If the
-tracker keeps saying a site is "blocked", run it on your own computer. Your
-home internet looks like a normal visitor. You need [Python 3.10+](https://www.python.org/downloads/).
+From GitHub's servers, **Gametime works** and Vivid Seats loads. **StubHub, SeatGeek,
+Ticketmaster and TickPick block GitHub's servers** (they return "403 blocked").
+Those sites usually allow normal home internet, so running the tracker on your
+own computer while it's on lets it check them too. You need [Python 3.10+](https://www.python.org/downloads/).
 
 ```bash
 pip install -r requirements.txt

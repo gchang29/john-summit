@@ -3,11 +3,13 @@ name: Track John Summit GA prices
 on:
   schedule:
     # Every 30 minutes. GitHub may run scheduled jobs a few minutes late.
-    # Private repo? Free accounts get 2,000 Actions minutes/month, which this
-    # schedule would use up -- switch to "0 */2 * * *" (every 2 hours) or make
-    # the repo public (unlimited free minutes). See README.
     - cron: "*/30 * * * *"
   workflow_dispatch: # lets you hit "Run workflow" manually
+    inputs:
+      test_email:
+        description: "Just send a test email (to check it arrives and isn't in spam)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write # to save price history back into the repo
@@ -18,12 +20,13 @@ concurrency:
 
 jobs:
   track:
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest switches to Ubuntu 26 on Oct 19, mid-tracking.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -33,7 +36,17 @@ jobs:
           pip install -r requirements.txt
           python -m playwright install --with-deps chromium
 
+      - name: Send test email
+        if: inputs.test_email
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python -m tracker --test-notify
+
       - name: Check ticket sites
+        if: ${{ !inputs.test_email }}
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
@@ -45,7 +58,7 @@ jobs:
         run: python -m tracker
 
       - name: Save price history
-        if: always()
+        if: ${{ always() && !inputs.test_email }}
         run: |
           git config user.name "price-tracker-bot"
           git config user.email "github-actions[bot]@users.noreply.github.com"

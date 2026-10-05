@@ -95,6 +95,9 @@ def check_site(browser, key: str, site: dict, cfg: dict, state: dict, flt: GAFil
         return SiteResult(key, name, BLOCKED, url, note=f"bot protection page (HTTP {page.status})")
     if page.status and page.status >= 400:
         return SiteResult(key, name, ERROR, url, note=f"HTTP {page.status}")
+    # Print a few price lines so a layout change can be diagnosed from the log.
+    sample = [l.strip() for l in page.text.splitlines() if "$" in l][:8]
+    print(f"    (no GA found; {len(page.cards)} GA-looking blocks; price lines seen: {sample})")
     return SiteResult(key, name, NO_GA, url, note="page loaded but no GA listings found")
 
 
@@ -141,7 +144,15 @@ def main(argv=None) -> int:
 
     cfg = load_config(Path(args.config))
     if args.test_notify:
-        ok = notify.send("John Summit tracker test", "If you can read this, alerts are working.")
+        best = load_state().get("sites", {})
+        known = sorted((s["last_price"], s.get("name", k)) for k, s in best.items() if s.get("last_price"))
+        now = f"Right now the cheapest GA ticket I can see is ${known[0][0]:,.0f} on {known[0][1]}." if known else ""
+        ok = notify.send(
+            "John Summit ticket tracker: test email",
+            "This is a test. Alerts are set up correctly.\n\n"
+            f"You'll get an email like this when a GA ticket for John Summit at TD Garden (Oct 29) "
+            f"is ${cfg.get('target_price')} or less. {now}",
+        )
         return 0 if ok else 1
 
     event_day = date.fromisoformat(str(cfg["event"]["date"]))

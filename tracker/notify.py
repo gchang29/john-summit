@@ -2,14 +2,18 @@
 
 - NTFY_TOPIC            phone push notifications via the free ntfy app (easiest)
 - DISCORD_WEBHOOK_URL   a Discord channel webhook
-- SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, EMAIL_TO   email (e.g. Gmail app password)
+- SMTP_USER + SMTP_PASSWORD   email, sent from that account (a Gmail address + Gmail
+  app password). EMAIL_TO = who receives it (defaults to SMTP_USER).
+  SMTP_HOST / SMTP_PORT default to Gmail (smtp.gmail.com:587).
 """
 
 from __future__ import annotations
 
+import html
 import os
 import smtplib
 from email.message import EmailMessage
+from email.utils import formataddr, formatdate, make_msgid
 
 import requests
 
@@ -45,19 +49,32 @@ def _discord(title: str, body: str, click_url: str | None, urgent: bool) -> bool
 
 
 def _email(title: str, body: str, click_url: str | None, urgent: bool) -> bool:
-    host, to = os.environ.get("SMTP_HOST"), os.environ.get("EMAIL_TO")
-    if not (host and to):
+    user, password = os.environ.get("SMTP_USER"), os.environ.get("SMTP_PASSWORD")
+    if not (user and password):
         return False
+    to = os.environ.get("EMAIL_TO") or user
+    sender = formataddr(("John Summit Ticket Tracker", user))
     msg = EmailMessage()
     msg["Subject"] = title
-    msg["From"] = os.environ.get("SMTP_USER", to)
+    msg["From"] = sender
     msg["To"] = to
-    msg.set_content(body + (f"\n\n{click_url}" if click_url else ""))
-    with smtplib.SMTP(host, int(os.environ.get("SMTP_PORT", "587")), timeout=30) as smtp:
+    msg["Date"] = formatdate(localtime=True)
+    msg["Message-ID"] = make_msgid(domain=user.split("@")[-1])
+    text = body + (f"\n\n{click_url}" if click_url and click_url not in body else "")
+    msg.set_content(text)
+    html_body = html.escape(text).replace("\n", "<br>")
+    if click_url:
+        html_body += f'<p><a href="{html.escape(click_url)}">Open the listing</a></p>'
+    msg.add_alternative(f"<html><body style='font-family:sans-serif'>{html_body}</body></html>", subtype="html")
+
+    host = os.environ.get("SMTP_HOST") or "smtp.gmail.com"
+    port = int(os.environ.get("SMTP_PORT") or 587)
+    with smtplib.SMTP(host, port, timeout=30) as smtp:
         smtp.starttls()
-        if os.environ.get("SMTP_USER"):
-            smtp.login(os.environ["SMTP_USER"], os.environ.get("SMTP_PASSWORD", ""))
+        # Gmail app passwords are shown with spaces; they work without them.
+        smtp.login(user, password.replace(" ", ""))
         smtp.send_message(msg)
+    print("  email sent")  # (no address: Actions logs are public)
     return True
 
 

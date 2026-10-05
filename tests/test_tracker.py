@@ -76,10 +76,31 @@ def test_failure_heads_up_once():
 
 def test_target_price_alert():
     state = {}
-    cfg = {"min_drop_dollars": 1, "target_price": 160}
-    evaluate(state, [SiteResult("a", "A", OK, "u", 200)], cfg, "t")
-    alerts = evaluate(state, [SiteResult("a", "A", OK, "u", 155)], cfg, "t")
-    assert alerts[0].urgent and "BUY NOW" in alerts[0].title
+    cfg = {"min_drop_dollars": 1, "target_price": 500, "alert_on_every_drop": False}
+    run = lambda p: evaluate(state, [SiteResult("a", "Gametime", OK, "https://g", p)], cfg, "t")
+    assert "running" in run(538)[0].title       # first check: status message
+    assert run(520) == []                        # drop above target: silent in target-only mode
+    hit = run(499)
+    assert len(hit) == 1 and hit[0].urgent and "$499" in hit[0].title and "https://g" in hit[0].body
+    assert run(499) == [] and run(499.5) == []   # no repeats at the same price
+    assert "$480" in run(480)[0].title           # even lower -> alert again
+    assert run(560) == []                        # back above target -> re-armed, silent
+    assert "$495" in run(495)[0].title           # under again -> alert
+
+
+def test_target_already_met_on_first_check():
+    state = {}
+    cfg = {"min_drop_dollars": 1, "target_price": 500, "alert_on_every_drop": False}
+    alerts = evaluate(state, [SiteResult("a", "A", OK, "u", 450)], cfg, "t")
+    assert len(alerts) == 1 and alerts[0].urgent and "$450" in alerts[0].title
+
+
+def test_no_ga_check_does_not_trigger_target_again():
+    state = {}
+    cfg = {"min_drop_dollars": 1, "target_price": 500, "alert_on_every_drop": False}
+    evaluate(state, [SiteResult("a", "A", OK, "u", 450)], cfg, "t")
+    evaluate(state, [SiteResult("a", "A", NO_GA, "u", None)], cfg, "t")
+    assert evaluate(state, [SiteResult("a", "A", OK, "u", 450)], cfg, "t") == []
 
 
 def test_browser_finds_ga_cards():

@@ -100,28 +100,40 @@ def evaluate(state: dict, results: list[SiteResult], cfg: dict, now_iso: str) ->
     if new_low:
         state["best_ever"] = {"price": price, "site": sites_state[key].get("name", key), "at": now_iso}
 
-    reasons = list(drops)
-    if prev_cheapest is not None and price <= prev_cheapest[0] - min_drop and not drops:
+    every_drop = cfg.get("alert_on_every_drop", True)
+    reasons = list(drops) if every_drop else []
+    if every_drop and prev_cheapest is not None and price <= prev_cheapest[0] - min_drop and not drops:
         reasons.append(f"Cheapest GA overall dropped to {_money(price)} on {sites_state[key]['name']} "
                        f"(was {_money(prev_cheapest[0])})")
 
-    hit_target = target is not None and price <= float(target)
-    last_target_alert = state.get("target_alerted_price")
-    target_news = hit_target and (last_target_alert is None or price < last_target_alert)
-    if target_news:
-        state["target_alerted_price"] = price
+    target_news = False
+    if target is not None:
+        last_target_alert = state.get("target_alerted_price")
+        if price <= float(target):
+            target_news = last_target_alert is None or price <= last_target_alert - min_drop
+            if target_news:
+                state["target_alerted_price"] = price
+        else:
+            state["target_alerted_price"] = None  # back above target: re-arm the alert
 
-    if first_run:
+    name = sites_state[key].get("name", key)
+    if target_news:
+        body = f"Cheapest GA ticket is {_money(price)} per ticket on {name} (your target: {_money(float(target))})."
+        if reasons:
+            body += "\n\n" + "\n".join(reasons)
+        body += f"\n\n{summary}\n\nBuy here: {click}"
+        state["initialized"] = True
+        alerts.append(Alert(f"John Summit GA tickets are {_money(price)} on {name}", body,
+                            click_url=click, urgent=True))
+    elif first_run:
         state["initialized"] = True
         alerts.append(Alert("John Summit GA tracker is running",
-                            f"Cheapest GA right now: {_money(price)} on {sites_state[key]['name']}.\n\n{summary}",
+                            f"Cheapest GA right now: {_money(price)} on {name}.\n\n{summary}",
                             click_url=click))
-    elif reasons or target_news:
-        title = (f"BUY NOW? GA at {_money(price)} (target {_money(float(target))})" if target_news
-                 else f"John Summit GA price drop: {_money(price)}")
+    elif reasons:
         body = "\n".join(reasons)
         if new_low:
-            body += f"\nNew all-time low: {_money(price)} on {sites_state[key]['name']}"
+            body += f"\nNew all-time low: {_money(price)} on {name}"
         body += f"\n\n{summary}"
-        alerts.append(Alert(title, body.strip(), click_url=click, urgent=target_news))
+        alerts.append(Alert(f"John Summit GA price drop: {_money(price)}", body.strip(), click_url=click))
     return alerts
