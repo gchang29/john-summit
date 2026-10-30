@@ -1,16 +1,16 @@
 {
   "best_ever": {
-    "at": "2026-10-30T01:46:21+00:00",
-    "price": 51.0,
-    "site": "Gametime"
+    "at": "2026-10-30T04:32:17+00:00",
+    "price": 49.0,
+    "site": "Vivid Seats"
   },
   "initialized": true,
-  "last_emailed_price": 51.0,
+  "last_emailed_price": 49.0,
   "sites": {
     "gametime": {
       "consecutive_failures": 0,
       "failure_alerted": false,
-      "last_checked": "2026-10-30T03:31:42+00:00",
+      "last_checked": "2026-10-30T04:32:17+00:00",
       "last_ok": "2026-10-30T01:46:21+00:00",
       "last_price": null,
       "last_status": "no_ga_listings",
@@ -19,17 +19,17 @@
       "url": "https://gametime.co/concert/john-summit-tickets/10-29-2026-boston-ma-td-garden/events/6a0e00dc90889bde35083dd4"
     },
     "seatgeek": {
-      "consecutive_failures": 1170,
+      "consecutive_failures": 1171,
       "failure_alerted": true,
-      "last_checked": "2026-10-30T03:31:42+00:00",
+      "last_checked": "2026-10-30T04:32:17+00:00",
       "last_status": "blocked",
       "name": "SeatGeek",
       "url": "https://seatgeek.com/john-summit-tickets/boston-massachusetts-td-garden-2026-10-29-7-pm/concert/18257236"
     },
     "stubhub": {
-      "consecutive_failures": 630,
+      "consecutive_failures": 631,
       "failure_alerted": true,
-      "last_checked": "2026-10-30T03:31:42+00:00",
+      "last_checked": "2026-10-30T04:32:17+00:00",
       "last_ok": "2026-10-11T11:38:53+00:00",
       "last_price": null,
       "last_status": "blocked",
@@ -38,27 +38,27 @@
       "url": "https://www.stubhub.com/john-summit-boston-tickets-10-29-2026/event/161191071/"
     },
     "ticketmaster": {
-      "consecutive_failures": 1170,
+      "consecutive_failures": 1171,
       "failure_alerted": true,
-      "last_checked": "2026-10-30T03:31:42+00:00",
+      "last_checked": "2026-10-30T04:32:17+00:00",
       "last_status": "blocked",
       "name": "Ticketmaster"
     },
     "tickpick": {
-      "consecutive_failures": 1170,
+      "consecutive_failures": 1171,
       "failure_alerted": true,
-      "last_checked": "2026-10-30T03:31:42+00:00",
+      "last_checked": "2026-10-30T04:32:17+00:00",
       "last_status": "blocked",
       "name": "TickPick"
     },
     "vividseats": {
       "consecutive_failures": 0,
       "failure_alerted": false,
-      "last_checked": "2026-10-30T03:31:42+00:00",
-      "last_ok": "2026-10-29T23:02:16+00:00",
-      "last_price": null,
-      "last_status": "no_ga_listings",
-      "lowest_price": 482.0,
+      "last_checked": "2026-10-30T04:32:17+00:00",
+      "last_ok": "2026-10-30T04:32:17+00:00",
+      "last_price": 49.0,
+      "last_status": "ok",
+      "lowest_price": 49.0,
       "name": "Vivid Seats",
       "url": "https://www.vividseats.com/john-summit-tickets-boston-td-garden-10-29-2026--concerts-dance-electronica/production/7058770"
     }
